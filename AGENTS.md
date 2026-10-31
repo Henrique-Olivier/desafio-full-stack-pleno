@@ -5,6 +5,11 @@ Desafio técnico Fullstack Pleno: módulo de montagem de pedidos para vendedores
 
 Stack: Vue 3 + Tailwind + shadcn (front, em `front-end/`), Node.js + TypeScript (back), PostgreSQL. Tudo deve subir com `docker compose up`.
 
+## Como trabalhar
+- Nunca sair codando. Antes de qualquer código, entender o pedido e apresentar as soluções possíveis (com prós e contras) para o problema que foi pedido.
+- Esperar o usuário escolher antes de implementar.
+- Resolver só o que foi pedido; não adicionar escopo por conta própria.
+
 ## Documento principal
 `Desafio Técnico — Fullstack Pleno.pdf` (raiz). Fonte da verdade para requisitos, regras de domínio e entregáveis. Consulte antes de decidir escopo.
 
@@ -12,6 +17,33 @@ Stack: Vue 3 + Tailwind + shadcn (front, em `front-end/`), Node.js + TypeScript 
 `seed.json` (raiz). Usar como está; contém imperfeições propositais de dados reais.
 Coleções: `supervisores`, `vendedores`, `clientes`, `produtos`, `tabelas_preco`, `pedidos_historico`.
 `preco_unidade` é preço de uma unidade (não da embalagem); `fator_embalagem` é unidades por embalagem.
+
+## Back-end (`back-end/`)
+Express 5 + TypeScript (ESM, imports com `.js`), `pg` com SQL puro (sem ORM), `zod` para validar entrada. Arquitetura: Vertical Slices + Functional Core (detalhes e justificativa em `DECISIONS.md`).
+
+```
+back-end/
+  db/            # .sql rodados pelo Postgres na 1ª subida (schema + seed lido do seed.json)
+  src/
+    core/        # regras de negócio: tipos + funções puras, sem Express e sem banco
+    features/    # um arquivo por caso de uso: zod na entrada + SQL + chamada ao core
+    db.ts        # Pool do pg (DATABASE_URL)
+    main.ts      # sobe o Express e registra as features
+```
+
+Banco: `docker compose up -d db`. Mudou algum `.sql`? `docker compose down -v` e sobe de novo.
+
+Regras:
+- Regra de negócio só no `core/`. `core/` nunca importa Express, banco ou `fs`.
+- Dependência entre domínios em mão única: `pedido` importa `carteira` e `catalogo`, nunca o contrário.
+- Tradução banco (snake_case) -> domínio (camelCase) fica em `features/` (alias no SQL ou map), nunca no `core/`.
+- Violação de regra volta como dado (lista de problemas), não exceção; a feature responde 422.
+- Nomes em português (linguagem do domínio/DDD; PDF = negócio e fonte da verdade, seed = parte técnica). Sem acento/`ç` em identificadores.
+- Dinheiro em centavos (inteiro). Quantidade sempre em unidades.
+- Back recalcula preço e total; nunca confia em valor vindo do front.
+- Toda função do `core/` com regra tem teste ao lado (`*.test.ts`, `node:test`). Rodar: `npm test`.
+
+Exemplo de referência: `src/features/listar-produtos.ts` + `src/core/catalogo.ts` + `src/core/catalogo.test.ts`.
 
 ## Commits
 - Sempre iniciar o título com prefixo de tipo: `feat:`, `bugfix:`, `chore:`, `docs:`, `test:`, `refactor:`.
