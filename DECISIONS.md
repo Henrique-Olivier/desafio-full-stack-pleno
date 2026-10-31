@@ -46,7 +46,7 @@ Exemplo já implementado: `features/listar-produtos.ts` busca no banco e usa `pr
 Regras que vou seguir:
 - Regra de negócio só no `core/`.
 - Erro de regra volta como lista de problemas, não como exceção, pra tela mostrar tudo de uma vez.
-- Dinheiro em centavos e quantidade sempre em unidades.
+- Dinheiro em `numeric` no banco e em centavos nas contas do código. Quantidade sempre em unidades.
 - O back recalcula preço e total, nunca confia no que vem do front.
 
 **Por quê**
