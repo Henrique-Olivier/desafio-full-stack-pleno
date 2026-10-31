@@ -1,0 +1,2 @@
+Front-end: Vue.js + Tailwind + Shadcn
+Justificativa -> Usar os componentes prontos do shadcn e a estilização simplificado do tailwind vão me poupar tempo com estilização. Focando mais especificamente na regra de negócio e entrega de valor da plataforma. Além da manuntenção simplificada
