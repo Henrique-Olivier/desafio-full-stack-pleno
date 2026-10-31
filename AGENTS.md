@@ -9,6 +9,7 @@ Stack: Vue 3 + Tailwind + shadcn (front, em `front-end/`), Node.js + TypeScript 
 - Nunca sair codando. Antes de qualquer código, entender o pedido e apresentar as soluções possíveis (com prós e contras) para o problema que foi pedido.
 - Esperar o usuário escolher antes de implementar.
 - Resolver só o que foi pedido; não adicionar escopo por conta própria.
+- Não colocar comentários no código. O código deve se explicar pelos nomes; contexto e justificativas vão para `DECISIONS.md`.
 
 ## Documento principal
 `Desafio Técnico — Fullstack Pleno.pdf` (raiz). Fonte da verdade para requisitos, regras de domínio e entregáveis. Consulte antes de decidir escopo.

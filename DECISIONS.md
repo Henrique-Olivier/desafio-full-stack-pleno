@@ -110,3 +110,48 @@ Português, sem acento e sem `ç` nos identificadores (`alcada`, `preco`, `descr
 
 **O que faria diferente com mais tempo**
 Nada nesse ponto. Só mudaria para inglês se o time ou o restante do codebase da empresa já usasse inglês.
+
+## Modelagem do banco
+
+Diagrama: https://dbdiagram.io/d/desafio-pl-6ae60acf8bf38111a8f5985c
+
+**Contexto**
+Precisei transformar o `seed.json` em tabelas, mantendo os dados como estão e deixando espaço para os pedidos novos criados pelo app.
+
+**Alternativas e escolhas**
+- **Ids:** usar os ids do seed (`V01`, `C001`, `P001`) como `TEXT` ou gerar ids numéricos. Fiquei com os do seed: as relações já batem, o SQL do import fica curto e o mesmo id aparece no arquivo, no banco e na tela. Ids numéricos exigiriam uma coluna extra com o código e um join em cada insert.
+- **Vendedor e supervisor:** uma tabela `users` com role ou tabelas separadas. Separei, porque eles têm dados diferentes (só o vendedor tem alçada) e a carteira do cliente precisa apontar só para vendedor. O login é simulado.
+- **Dinheiro:** `numeric(12,2)`, exato no banco e legível. O seed entra sem conversão.
+- **Status do pedido:** `ENUM` com `Faturado` e `Cancelado` (do seed) e `Enviado` e `AguardandoAprovacao` (do PDF). Assim o banco não aceita status inválido.
+- **Histórico e pedidos novos na mesma tabela `pedidos`:** o "repetir pedido" lê de um lugar só.
+- **Preço congelado no item do pedido:** se a tabela de preço mudar, o pedido antigo continua com o valor da época.
+- **Desconto por item:** segui o histórico do seed, que traz `desconto_percentual` em cada item.
+- **Totais não são gravados:** são calculados a partir dos itens, então não existe valor duplicado que possa divergir.
+
+**Por quê**
+Manter o modelo próximo do seed e do PDF, evitar ambiguidade e deixar o banco garantir o que der (PK, FK, enum).
+
+**O que faria diferente com mais tempo**
+Não criei índices de performance, porque o volume do seed é mínimo. 
+## Id do pedido gerado pelo front
+
+**Contexto**
+O vendedor trabalha com internet ruim. Pode acontecer de o pedido ser gravado no servidor, a resposta se perder e o app tentar enviar de novo.
+
+**Alternativas**
+- Servidor gera o id (`SERIAL` ou `gen_random_uuid()`): mais simples, mas cada reenvio vira um pedido novo, duplicado no banco.
+- Front gera o id (`crypto.randomUUID()`) e manda junto com o pedido.
+
+**Escolha**
+O front gera o id do pedido. O back valida o formato com `z.uuid()` e grava com `INSERT ... ON CONFLICT (id) DO NOTHING`.
+
+Se o pedido foi criado, o back responde `201`. Se o id já existia, responde `200` com o pedido que está gravado, e o front mostra que ele já tinha sido enviado. Não usei `409`, porque na prática o id repetido é um reenvio por conexão ruim, e o vendedor veria um erro de um pedido que deu certo.
+
+**Por quê**
+- O mesmo pedido não pode ser cadastrado de novo no banco: se o app reenviar, o id já existe e nada é gravado outra vez.
+- O pedido já nasce com id, o que prepara o terreno para montar pedido offline e sincronizar depois.
+- Preço, total e status continuam sendo calculados pelo back. O front só escolhe o id.
+- `pedidos.id` é `TEXT`, então convive com os ids do histórico do seed (`PH001`).
+
+**O que faria diferente com mais tempo**
+Adicionaria um número curto e amigável para mostrar ao cliente, já que o UUID é longo para exibir na tela.
