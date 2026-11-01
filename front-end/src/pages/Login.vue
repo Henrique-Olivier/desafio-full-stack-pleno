@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/service/api'
 import { useVendedorSelecionadoStore } from '@/stores/vendedorSelecionado'
 import { useRouter } from 'vue-router'
-
-type Vendedor = { id: string; nome: string }
+import type { Vendedor } from '@/types/vendedor'
 
 const router = useRouter()
 const vendedorStore = useVendedorSelecionadoStore()
@@ -24,8 +23,9 @@ onMounted(async () => {
   }
 })
 
-function handleClickVendedor(vendedorId: string) {
-  vendedorStore.selecionarVendedor(vendedorId)
+function handleClickVendedor(vendedor: Vendedor) {
+  vendedorStore.selecionarVendedor(vendedor)
+  router.push('/carteira')
 }
 </script>
 
@@ -42,7 +42,7 @@ function handleClickVendedor(vendedorId: string) {
           variant="outline"
           size="lg"
           class="w-full justify-start"
-          @click="handleClickVendedor(vendedor.id)"
+          @click="handleClickVendedor(vendedor)"
         >
           {{ vendedor.nome }} 
         </Button>

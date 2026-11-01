@@ -1,11 +1,38 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import type { Vendedor } from '@/types/vendedor'
 
 export const useVendedorSelecionadoStore = defineStore('vendedorSelecionado', () => {
-  const vendedorId = ref('')
-  const selecionarVendedor = (id: string) => {
-    vendedorId.value = id
+  const vendedor = ref<Vendedor>({ id: '', nome: '' })
+  const localStorageKey = 'vendedorSelecionado'
+  const storedVendedor = localStorage.getItem(localStorageKey)
+
+  if (storedVendedor) {
+    let parsedVendedor = null
+    try {
+      parsedVendedor = JSON.parse(storedVendedor)
+    } catch (error) {
+      console.error('Erro ao analisar o vendedor armazenado no localStorage:', error)
+    }
+
+    if (parsedVendedor && typeof parsedVendedor === 'object' && 'id' in parsedVendedor && 'nome' in parsedVendedor) {
+      vendedor.value = parsedVendedor as Vendedor
+    }
   }
 
-  return { vendedorId, selecionarVendedor }
+  const selecionarVendedor = (vendedorSelecionado: Vendedor) => {
+    vendedor.value = { ...vendedorSelecionado }
+    localStorage.setItem(localStorageKey, JSON.stringify(vendedorSelecionado))
+  }
+
+  const limparVendedor = () => {
+    vendedor.value = { id: '', nome: '' }
+    localStorage.removeItem(localStorageKey)
+  }
+
+  const isVendedorSelecionado = computed(() => {
+    return !!vendedor.value.id && !!vendedor.value.nome
+  })
+
+  return { vendedor, selecionarVendedor, limparVendedor, isVendedorSelecionado }
 })
