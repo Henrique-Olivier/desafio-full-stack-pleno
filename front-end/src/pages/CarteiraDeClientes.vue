@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useVendedorSelecionadoStore } from '@/stores/vendedorSelecionado'
 import { api } from '@/service/api';
 import type { Cliente } from '@/types/cliente';
 import { formatarDinheiro } from '@/lib/utils'
@@ -13,7 +12,6 @@ import {
     TableRow,
 } from '@/components/ui/table'
 
-const vendedorStore = useVendedorSelecionadoStore()
 const clientes = ref<Cliente[]>([])
 const carregando = ref(true)
 const erro = ref(false)
@@ -34,8 +32,8 @@ onMounted(async () => {
 </script>
 
 <template>
-    <main class="mx-auto flex min-h-screen w-screen flex-col gap-6 p-24">
-        <h1 class="text-2xl font-semibold">Vendedor Selecionado: {{ vendedorStore.vendedor.nome }}</h1>
+    <div class="flex flex-col gap-6">
+        <h1 class="text-2xl font-semibold">Carteira de clientes</h1>
         <p v-if="carregando" class="text-muted-foreground">Carregando clientes...</p>
         <p v-else-if="erro" class="text-destructive">Não foi possível carregar os clientes.</p>
         <p v-else-if="clientes.length === 0 && !erro" class="text-muted-foreground">Nenhum cliente encontrado.</p>
@@ -72,5 +70,5 @@ onMounted(async () => {
             </TableBody>
         </Table>
 
-    </main>
+    </div>
 </template>

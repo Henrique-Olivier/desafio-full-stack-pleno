@@ -1,13 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/pages/Login.vue'
 import CarteiraDeClientes from '@/pages/CarteiraDeClientes.vue'
+import LayoutPrincipal from '@/components/LayoutPrincipal.vue'
 import { useVendedorSelecionadoStore } from '@/stores/vendedorSelecionado'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'login', component: Login },
-    { path: '/carteira', name: 'carteira', component: CarteiraDeClientes },
+    {
+      path: '/',
+      component: LayoutPrincipal,
+      children: [{ path: 'carteira', name: 'carteira', component: CarteiraDeClientes }],
+    },
   ],
 })
 
