@@ -10,6 +10,10 @@ O schema foi feito para aceitar esses dados, e o tratamento de cada caso fica no
 
 O PDF não fala de produto inativo. O seed traz o campo `ativo`, e alguns produtos vêm como `false`. Interpretei que produto inativo não pode ser vendido, mas continua aparecendo na lista do pedido, desabilitado e com o selo "Indisponível". Assim o vendedor entende que o produto existe e só não está à venda, em vez de achar que ele sumiu do catálogo.
 
+## Desconto por produto
+
+O PDF diz que o vendedor pode aplicar desconto, mas não diz se é no pedido inteiro ou em cada item. Interpretei que o desconto é por produto: cada item do pedido tem o seu percentual. É o mesmo formato do histórico do seed, que traz `desconto_percentual` em cada item. Se algum item passar da alçada do vendedor, o pedido inteiro vai para aprovação do supervisor.
+
 ## Login simulado
 
 O PDF diz que o login pode ser simulado escolhendo o vendedor. Interpretei que não há autenticação: o vendedor é escolhido numa lista e o id dele vai no header `X-Vendedor-Id` de cada requisição.

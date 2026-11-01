@@ -65,8 +65,11 @@ onMounted(async () => {
         <div
           class="bg-background fixed inset-x-0 bottom-0 z-10 border-t p-4 md:static md:border-0 md:bg-transparent md:p-0"
         >
-          <Button size="lg" class="w-full md:w-auto" :disabled="!detalhe.cliente.tabelaPrecoId">
+          <Button v-if="!detalhe.cliente.tabelaPrecoId" size="lg" class="w-full md:w-auto" disabled>
             Novo pedido
+          </Button>
+          <Button v-else as-child size="lg" class="w-full md:w-auto">
+            <RouterLink :to="{ name: 'novo-pedido', params: { clienteId: detalhe.cliente.id } }">Novo pedido</RouterLink>
           </Button>
         </div>
       </header>

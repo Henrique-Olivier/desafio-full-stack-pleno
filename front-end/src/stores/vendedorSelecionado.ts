@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import type { Vendedor } from '@/types/vendedor'
 
 export const useVendedorSelecionadoStore = defineStore('vendedorSelecionado', () => {
-  const vendedor = ref<Vendedor>({ id: '', nome: '' })
+  const vendedor = ref<Vendedor>({ id: '', nome: '', alcadaDescontoPercentual: 0 })
   const localStorageKey = 'vendedorSelecionado'
   const storedVendedor = localStorage.getItem(localStorageKey)
 
@@ -15,7 +15,7 @@ export const useVendedorSelecionadoStore = defineStore('vendedorSelecionado', ()
       console.error('Erro ao analisar o vendedor armazenado no localStorage:', error)
     }
 
-    if (parsedVendedor && typeof parsedVendedor === 'object' && 'id' in parsedVendedor && 'nome' in parsedVendedor) {
+    if (parsedVendedor && typeof parsedVendedor === 'object' && 'id' in parsedVendedor && 'nome' in parsedVendedor && 'alcadaDescontoPercentual' in parsedVendedor) {
       vendedor.value = parsedVendedor as Vendedor
     }
   }
@@ -26,7 +26,7 @@ export const useVendedorSelecionadoStore = defineStore('vendedorSelecionado', ()
   }
 
   const limparVendedor = () => {
-    vendedor.value = { id: '', nome: '' }
+    vendedor.value = { id: '', nome: '', alcadaDescontoPercentual: 0 }
     localStorage.removeItem(localStorageKey)
   }
 
