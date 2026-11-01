@@ -62,3 +62,5 @@ Tirei o `onMounted` da store (store não é componente) e passei a ler o `localS
 | Carteira (back) | Eu escrevi; a IA revisou, apontou os bugs (aspas no `$1`, header errado, rota) e eu corrigi. |
 | Carteira (front) | Eu montei a tela com a tabela do shadcn; a IA fez o `formatarDinheiro`, a guarda de rota e o tratamento de 401. |
 | Layout (sidebar retrátil, header mobile e menu do vendedor) | IA fez a partir do que eu descrevi (comportamento no desktop e no mobile, iniciais no avatar, sidebar encolhendo para ícones); eu revisei. |
+| Responsividade da carteira e do login | IA fez (cards no mobile, tabela a partir de telas grandes); eu escolhi a abordagem e revisei. |
+| Detalhe do cliente (back e front) | Eu desenhei a tela (informações em cima, histórico embaixo, botão de novo pedido) e propus um endpoint único; a IA sugeriu a rota `/carteira/:clienteId`, trocar a lista da tabela de preço por um selo, e escreveu back, front e o teste do crédito disponível. Pedi o card do pedido expansível com os itens; eu revisei. |

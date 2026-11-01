@@ -50,7 +50,7 @@ function sair() {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem v-for="tela in telas" :key="tela.rota">
-              <SidebarMenuButton as-child :is-active="route.name === tela.rota" :tooltip="tela.titulo">
+              <SidebarMenuButton as-child :is-active="route.path.startsWith(`/${tela.rota}`)" :tooltip="tela.titulo">
                 <RouterLink :to="{ name: tela.rota }">
                   <component :is="tela.icone" />
                   <span>{{ tela.titulo }}</span>

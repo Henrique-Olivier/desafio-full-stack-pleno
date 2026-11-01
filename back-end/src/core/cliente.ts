@@ -9,3 +9,5 @@ export type Cliente = {
     cidade: string | null;
     uf: string | null;
 } 
+export const creditoDisponivelCentavos = (limiteCentavos: number, utilizadoCentavos: number) =>
+  Math.max(0, limiteCentavos - utilizadoCentavos)

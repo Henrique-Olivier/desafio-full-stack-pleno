@@ -5,6 +5,7 @@ import { listarProdutosRouter } from './features/listar-produtos.js'  // .js mes
 import { listarVendedoresRouter } from './features/listar-vendedores.js'
 import { autenticarVendedor } from './autenticacao.js'
 import { listarCarteiraRouter } from './features/listar-carteira.js'
+import { detalharClienteRouter } from './features/detalhar-cliente.js'
 
 const app = express()
 
@@ -20,6 +21,7 @@ app.use(listarVendedoresRouter)
 app.use(autenticarVendedor)
 app.use(listarProdutosRouter)
 app.use(listarCarteiraRouter)
+app.use(detalharClienteRouter)
 
 // erro geral — sempre por último, 4 parâmetro
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
