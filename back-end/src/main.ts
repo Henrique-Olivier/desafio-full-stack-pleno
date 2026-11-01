@@ -2,6 +2,8 @@
 import express from 'express'
 import cors from 'cors'
 import { listarProdutosRouter } from './features/listar-produtos.js'  // .js mesmo
+import { listarVendedoresRouter } from './features/listar-vendedores.js'
+import { autenticarVendedor } from './autenticacao.js'
 
 const app = express()
 
@@ -12,6 +14,9 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true })
 })
 
+app.use(listarVendedoresRouter)
+
+app.use(autenticarVendedor)
 app.use(listarProdutosRouter)
 
 // erro geral — sempre por último, 4 parâmetro
