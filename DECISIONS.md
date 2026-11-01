@@ -179,3 +179,20 @@ Não é seguro: qualquer um pode mandar o header com o id de outro vendedor. Iss
 
 **O que faria diferente com mais tempo**
 Login com senha e token assinado (JWT), validado no mesmo middleware.
+
+## Tela de novo pedido
+
+**Contexto**
+O vendedor monta o pedido na frente do cliente, muitas vezes com internet ruim. Precisei decidir onde fica a tela, onde fica o pedido em montagem, como funciona a busca de produtos e quem calcula os totais.
+
+**Alternativas e escolhas**
+- **Onde fica a tela:** página própria (`/carteira/:clienteId/pedido`) ou um modal dentro do detalhe do cliente. Fiquei com a página própria.
+- **Pedido em montagem:** store do Pinia, salva no `localStorage`, ou um estado local da página, que se perde ao recarregar. Fiquei com o Pinia. O `localStorage` serve só para salvar localmente e não é usado para gerenciar o estado. Assim evito side effects causados por ele: se precisar manipular o estado entre telas, uso exclusivamente o Pinia.
+- **Busca de produtos:** buscar no back a cada digitação ou carregar a tabela de preço do cliente uma vez e filtrar no front por nome ou EAN. Fiquei com o filtro no front. Os produtos não mudam a todo momento, e usar o back para isso deixaria a busca refém da internet.
+- **Totais e regras:** o navegador calcula os subtotais e o total e mostra os avisos (mínimo, crédito) na hora, enquanto o vendedor monta o pedido. No envio, o back recalcula tudo e confirma o pedido ou devolve a lista de problemas. A outra opção seria chamar o back a cada mudança, o que dependeria da rede o tempo todo.
+
+**Pontos fracos**
+A conta do total existe no front e no back. O front é só uma prévia; quem vale é o back.
+
+**O que faria diferente com mais tempo**
+Transformaria o `core/` num pacote compartilhado para o front usar a mesma conta do back.
