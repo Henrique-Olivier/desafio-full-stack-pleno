@@ -82,7 +82,7 @@ function sair() {
       <SidebarRail />
     </Sidebar>
 
-    <SidebarInset>
+    <SidebarInset class="min-w-0">
       <header class="flex h-14 items-center justify-between border-b px-4">
         <SidebarTrigger>
           <Menu class="md:hidden" />

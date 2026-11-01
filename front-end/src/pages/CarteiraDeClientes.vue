@@ -37,7 +37,23 @@ onMounted(async () => {
         <p v-if="carregando" class="text-muted-foreground">Carregando clientes...</p>
         <p v-else-if="erro" class="text-destructive">Não foi possível carregar os clientes.</p>
         <p v-else-if="clientes.length === 0 && !erro" class="text-muted-foreground">Nenhum cliente encontrado.</p>
-        <Table v-else class="w-full">
+        <template v-else>
+        <ul class="grid gap-3 sm:grid-cols-2 xl:hidden">
+            <li v-for="cliente in clientes" :key="cliente.id" class="rounded-lg border p-4">
+                <div class="flex items-start justify-between gap-2">
+                    <p class="font-medium">{{ cliente.nomeFantasia }}</p>
+                    <span class="text-muted-foreground text-xs">{{ cliente.id }}</span>
+                </div>
+                <p class="text-muted-foreground text-sm">{{ cliente.razaoSocial }}</p>
+                <dl class="mt-3 grid grid-cols-2 gap-1 text-sm">
+                    <dt class="text-muted-foreground">Limite</dt>
+                    <dd class="text-right">{{ formatarDinheiro(cliente.limiteCredito) }}</dd>
+                    <dt class="text-muted-foreground">Utilizado</dt>
+                    <dd class="text-right">{{ formatarDinheiro(cliente.creditoUtilizado) }}</dd>
+                </dl>
+            </li>
+        </ul>
+        <Table class="hidden w-full xl:table">
             <TableHeader>
                 <TableRow>
                     <TableHead class="w-[100px]">
@@ -69,6 +85,7 @@ onMounted(async () => {
                 </TableRow>
             </TableBody>
         </Table>
+        </template>
 
     </div>
 </template>

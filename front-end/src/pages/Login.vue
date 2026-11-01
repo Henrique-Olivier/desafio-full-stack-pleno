@@ -30,7 +30,7 @@ function handleClickVendedor(vendedor: Vendedor) {
 </script>
 
 <template>
-  <main class="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-4">
+  <main class="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-6 p-4">
     <h1 class="text-2xl font-semibold">Selecione um vendedor</h1>
 
     <p v-if="carregando" class="text-muted-foreground">Carregando vendedores...</p>
