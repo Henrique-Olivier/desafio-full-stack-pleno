@@ -41,7 +41,7 @@ Regras:
 - Tradução banco (snake_case) -> domínio (camelCase) fica em `features/` (alias no SQL ou map), nunca no `core/`.
 - Violação de regra volta como dado (lista de problemas), não exceção; a feature responde 422.
 - Nomes em português (linguagem do domínio/DDD; PDF = negócio e fonte da verdade, seed = parte técnica). Sem acento/`ç` em identificadores.
-- Dinheiro: `numeric(12,2)` no banco; `features/` converte para centavos (inteiro) antes do `core/` (`pg` devolve numeric como string). Quantidade sempre em unidades.
+- Dinheiro: `numeric(12,2)` no banco; a API trafega em reais (`::float` no SQL). Centavos (inteiro) só dentro do back: `features/` converte antes de chamar o `core/` quando há conta. Quantidade sempre em unidades.
 - Back recalcula preço e total; nunca confia em valor vindo do front.
 - Toda função do `core/` com regra tem teste ao lado (`*.test.ts`, `node:test`). Rodar: `npm test`.
 

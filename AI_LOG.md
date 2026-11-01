@@ -30,8 +30,34 @@ Questionei por que o vendedor estava em "carteira". Não fazia sentido: quem abr
 
 Mudei para um arquivo por conceito (`vendedor.ts`, `cliente.ts`, `catalogo.ts`, `pedido.ts`). A carteira passa a ficar dentro de `vendedor.ts`, porque o vendedor tem uma carteira de clientes, e não o contrário. Registrei essa regra de dependência no `AGENTS.md`.
 
+## 3. Dinheiro em centavos na API (discordei da IA)
+
+**O que pedi**
+Pedi ajuda para terminar a listagem da carteira de clientes.
+
+**O que a IA respondeu**
+Seguindo a regra de converter dinheiro para centavos, sugeriu que a API já devolvesse `limiteCreditoCentavos` (R$ 6.000,00 virando `600000`) e que o front dividisse por 100 para mostrar.
+
+**O que decidi**
+Achei confuso. A listagem não faz conta nenhuma, só mostra valores, e ler `600000` na resposta da API não ajuda ninguém. Mudei para a API devolver em reais (`limite_credito::float AS "limiteCredito"`). Os centavos ficam só dentro do back, quando o `core/` precisar fazer conta (total do pedido, mínimo, crédito). Atualizei a regra no `AGENTS.md`.
+
+## 4. Tela de login carregando para sempre
+
+**O que pedi**
+A tela de login ficou em "Carregando vendedores..." infinito depois que mudei a store para guardar o vendedor no `localStorage`. Pedi para a IA verificar.
+
+**O que a IA respondeu**
+Abriu a tela no navegador e leu o console: o `localStorage` tinha `"V01"`, salvo por uma versão anterior da store, e o `JSON.parse` quebrava. O erro estava num `onMounted` dentro da store, que impedia o `onMounted` da tela de rodar, então a requisição nem saía.
+
+**O que decidi**
+Tirei o `onMounted` da store (store não é componente) e passei a ler o `localStorage` direto na criação, com `try/catch` para um valor inválido não travar o app de novo.
+
 ## Mapa de autoria
 
 | Parte | Autoria |
 |---|---|
 | Modelagem | Feita em conjunto: eu comecei, a IA terminou e eu revisei. |
+| Login simulado (back: `/vendedores` e middleware do header) | IA escreveu a partir das minhas decisões; eu revisei. |
+| Tela de login | IA criou a página; eu fiz a store, o service e a seleção do vendedor. |
+| Carteira (back) | Eu escrevi; a IA revisou, apontou os bugs (aspas no `$1`, header errado, rota) e eu corrigi. |
+| Carteira (front) | Eu montei a tela com a tabela do shadcn; a IA fez o `formatarDinheiro`, a guarda de rota e o tratamento de 401. |
