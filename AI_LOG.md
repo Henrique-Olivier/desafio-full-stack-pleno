@@ -61,3 +61,4 @@ Tirei o `onMounted` da store (store não é componente) e passei a ler o `localS
 | Tela de login | IA criou a página; eu fiz a store, o service e a seleção do vendedor. |
 | Carteira (back) | Eu escrevi; a IA revisou, apontou os bugs (aspas no `$1`, header errado, rota) e eu corrigi. |
 | Carteira (front) | Eu montei a tela com a tabela do shadcn; a IA fez o `formatarDinheiro`, a guarda de rota e o tratamento de 401. |
+| Layout (sidebar retrátil, header mobile e menu do vendedor) | IA fez a partir do que eu descrevi (comportamento no desktop e no mobile, iniciais no avatar, sidebar encolhendo para ícones); eu revisei. |
