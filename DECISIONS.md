@@ -41,7 +41,7 @@ back-end/src/
   main.ts      # sobe o Express e registra as features
 ```
 
-Exemplo já implementado: `features/listar-produtos.ts` busca no banco e usa `produtosAtivos()` de `core/catalogo.ts`, testado em `core/catalogo.test.ts`.
+Exemplo já implementado: `features/listar-produtos.ts` busca no banco e usa `produtosAtivos()` de `core/produto.ts`, testado em `core/produto.test.ts`.
 
 Regras que vou seguir:
 - Regra de negócio só no `core/`.

@@ -52,6 +52,17 @@ Abriu a tela no navegador e leu o console: o `localStorage` tinha `"V01"`, salvo
 **O que decidi**
 Tirei o `onMounted` da store (store não é componente) e passei a ler o `localStorage` direto na criação, com `try/catch` para um valor inválido não travar o app de novo.
 
+## 5. `core/catalogo.ts` (a IA errou de novo no nome)
+
+**O que pedi**
+Pedi para a IA criar o tipo completo do produto.
+
+**O que a IA respondeu**
+Completou o tipo `Produto` dentro de `core/catalogo.ts`, o arquivo de exemplo que ela mesma tinha criado no scaffold, com o nome tirado do PDF ("consulta o catálogo").
+
+**O que decidi**
+Perguntei por que "catálogo". Era o mesmo problema da carteira: os outros arquivos do `core/` são entidades (`vendedor.ts`, `cliente.ts`, `pedido.ts`), e catálogo é um agrupamento. Quem procura o tipo `Produto` não abre `catalogo.ts` primeiro. Renomeei para `core/produto.ts` e atualizei o `AGENTS.md` e o `DECISIONS.md`.
+
 ## Mapa de autoria
 
 | Parte | Autoria |

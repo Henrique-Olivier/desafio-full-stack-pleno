@@ -37,7 +37,7 @@ Banco: `docker compose up -d db`. Mudou algum `.sql`? `docker compose down -v` e
 
 Regras:
 - Regra de negócio só no `core/`. `core/` nunca importa Express, banco ou `fs`.
-- Um arquivo por conceito em `core/` (`vendedor.ts`, `cliente.ts`, `catalogo.ts`, `pedido.ts`). Dependência em mão única: `pedido` importa os outros; a carteira (clientes do vendedor) fica em `vendedor.ts`, que pode importar `cliente.ts`, nunca o contrário.
+- Um arquivo por conceito em `core/` (`vendedor.ts`, `cliente.ts`, `produto.ts`, `pedido.ts`). Dependência em mão única: `pedido` importa os outros; a carteira (clientes do vendedor) fica em `vendedor.ts`, que pode importar `cliente.ts`, nunca o contrário.
 - Tradução banco (snake_case) -> domínio (camelCase) fica em `features/` (alias no SQL ou map), nunca no `core/`.
 - Violação de regra volta como dado (lista de problemas), não exceção; a feature responde 422.
 - Nomes em português (linguagem do domínio/DDD; PDF = negócio e fonte da verdade, seed = parte técnica). Sem acento/`ç` em identificadores.
@@ -45,7 +45,7 @@ Regras:
 - Back recalcula preço e total; nunca confia em valor vindo do front.
 - Toda função do `core/` com regra tem teste ao lado (`*.test.ts`, `node:test`). Rodar: `npm test`.
 
-Exemplo de referência: `src/features/listar-produtos.ts` + `src/core/catalogo.ts` + `src/core/catalogo.test.ts`.
+Exemplo de referência: `src/features/listar-produtos.ts` + `src/core/produto.ts` + `src/core/produto.test.ts`.
 
 ## Commits
 - Sempre iniciar o título com prefixo de tipo: `feat:`, `bugfix:`, `chore:`, `docs:`, `test:`, `refactor:`.
