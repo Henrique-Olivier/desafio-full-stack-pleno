@@ -17,6 +17,19 @@ Discordei e fiquei com a B. O `numeric` é o tipo mais adequado para dinheiro no
 
 Aceitei o alerta sobre o float no JavaScript: a conversão para centavos acontece em `features/` ao ler do banco, antes de chegar no `core/`. Assim as contas das regras continuam exatas.
 
+## 2. Vendedor dentro de `core/carteira.ts` (a IA errou)
+
+**O que pedi**
+Pedi para a IA criar o primeiro endpoint, a listagem de vendedores para o login simulado.
+
+**O que a IA respondeu**
+Criou o tipo `Vendedor` dentro de `core/carteira.ts`, seguindo uma divisão de domínios que ela mesma tinha proposto antes: `carteira` agrupando vendedores e clientes, porque o PDF define carteira como o conjunto de clientes de um vendedor.
+
+**O que decidi**
+Questionei por que o vendedor estava em "carteira". Não fazia sentido: quem abre `carteira.ts` espera encontrar a carteira, não o vendedor. Isso ia contra a minha própria decisão de nomes, que tem como ponto principal evitar ambiguidade.
+
+Mudei para um arquivo por conceito (`vendedor.ts`, `cliente.ts`, `catalogo.ts`, `pedido.ts`). A carteira passa a ficar dentro de `vendedor.ts`, porque o vendedor tem uma carteira de clientes, e não o contrário. Registrei essa regra de dependência no `AGENTS.md`.
+
 ## Mapa de autoria
 
 | Parte | Autoria |

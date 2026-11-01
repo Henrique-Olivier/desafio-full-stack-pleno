@@ -155,3 +155,27 @@ Se o pedido foi criado, o back responde `201`. Se o id já existia, responde `20
 
 **O que faria diferente com mais tempo**
 Adicionaria um número curto e amigável para mostrar ao cliente, já que o UUID é longo para exibir na tela.
+
+## Login simulado por header (`X-Vendedor-Id`)
+
+**Contexto**
+O PDF permite simular o login escolhendo o vendedor. Preciso decidir como o vendedor escolhido chega ao back em cada requisição.
+
+**Alternativas**
+- Id do vendedor na URL (`/vendedores/:id/clientes`): simples, mas cada rota recebe o id por conta própria.
+- Header `X-Vendedor-Id` lido por um middleware.
+- Sessão ou cookie criados por um `POST /login`: mais próximo do real, mas guarda estado no servidor sem necessidade.
+
+**Escolha**
+Header `X-Vendedor-Id`. O middleware `autenticarVendedor` lê o header, busca o vendedor no banco e coloca em `req.vendedor`. Sem header ou com vendedor inexistente, responde `401`. As rotas públicas (`/health` e `/vendedores`, que é a tela de escolha) ficam registradas antes do middleware; todas as outras, depois.
+
+**Por quê**
+- Simula um login real: a identidade vem de um único lugar, como viria de um token.
+- Para trocar por login de verdade, só o middleware muda (passa a validar um token em vez de ler o header). As rotas continuam iguais.
+- Nenhuma rota precisa lembrar de filtrar pelo vendedor por conta própria, porque todas passam pelo middleware.
+
+**Pontos fracos**
+Não é seguro: qualquer um pode mandar o header com o id de outro vendedor. Isso é aceitável porque o PDF pede só uma simulação.
+
+**O que faria diferente com mais tempo**
+Login com senha e token assinado (JWT), validado no mesmo middleware.

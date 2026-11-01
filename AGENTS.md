@@ -28,6 +28,7 @@ back-end/
   src/
     core/        # regras de negócio: tipos + funções puras, sem Express e sem banco
     features/    # um arquivo por caso de uso: zod na entrada + SQL + chamada ao core
+    autenticacao.ts  # login simulado: header X-Vendedor-Id -> req.vendedor (401 se ausente/inválido)
     db.ts        # Pool do pg (DATABASE_URL)
     main.ts      # sobe o Express e registra as features
 ```
@@ -36,7 +37,7 @@ Banco: `docker compose up -d db`. Mudou algum `.sql`? `docker compose down -v` e
 
 Regras:
 - Regra de negócio só no `core/`. `core/` nunca importa Express, banco ou `fs`.
-- Dependência entre domínios em mão única: `pedido` importa `carteira` e `catalogo`, nunca o contrário.
+- Um arquivo por conceito em `core/` (`vendedor.ts`, `cliente.ts`, `catalogo.ts`, `pedido.ts`). Dependência em mão única: `pedido` importa os outros; a carteira (clientes do vendedor) fica em `vendedor.ts`, que pode importar `cliente.ts`, nunca o contrário.
 - Tradução banco (snake_case) -> domínio (camelCase) fica em `features/` (alias no SQL ou map), nunca no `core/`.
 - Violação de regra volta como dado (lista de problemas), não exceção; a feature responde 422.
 - Nomes em português (linguagem do domínio/DDD; PDF = negócio e fonte da verdade, seed = parte técnica). Sem acento/`ç` em identificadores.
