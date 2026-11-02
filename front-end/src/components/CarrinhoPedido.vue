@@ -3,7 +3,13 @@ import { ref } from 'vue'
 import { Minus, Plus, Trash2, TriangleAlert } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { descreverEmbalagem, passoQuantidade, type ItemEmMontagem } from '@/lib/pedido'
+import {
+  descreverEmbalagem,
+  passoQuantidade,
+  quantidadeNoCampo,
+  unidadesDoCampo,
+  type ItemEmMontagem,
+} from '@/lib/pedido'
 import { formatarDinheiro } from '@/lib/utils'
 import { usePedidoEmMontagemStore } from '@/stores/pedidoEmMontagem'
 import type { ProdutoDaTabela } from '@/types/produto'
@@ -31,8 +37,8 @@ function enviar() {
 
 function digitarQuantidade(item: ItemEmMontagem, produto: ProdutoDaTabela, evento: Event) {
   const campo = evento.target as HTMLInputElement
-  pedidoStore.alterarQuantidade(props.clienteId, produto, Number(campo.value))
-  campo.value = String(item.quantidade)
+  pedidoStore.alterarQuantidade(props.clienteId, produto, unidadesDoCampo(produto, Number(campo.value)))
+  campo.value = String(quantidadeNoCampo(produto, item.quantidade))
 }
 
 function digitarDesconto(item: ItemEmMontagem, evento: Event) {
@@ -73,13 +79,13 @@ function digitarDesconto(item: ItemEmMontagem, evento: Event) {
               <Minus class="size-4" />
             </Button>
             <Input
-              :model-value="item.quantidade"
+              :model-value="quantidadeNoCampo(produto, item.quantidade)"
               type="number"
               inputmode="numeric"
-              :step="passoQuantidade(produto)"
-              :min="passoQuantidade(produto)"
+              step="1"
+              min="1"
               class="mx-1 h-8 w-16 text-center"
-              aria-label="Quantidade em unidades"
+              :aria-label="produto.vendaSomenteMultiplo ? `Quantidade em ${produto.unidadeVenda}` : 'Quantidade em unidades'"
               @change="digitarQuantidade(item, produto, $event)"
             />
             <Button
@@ -92,7 +98,10 @@ function digitarDesconto(item: ItemEmMontagem, evento: Event) {
               <Plus class="size-4" />
             </Button>
           </div>
-          <span class="text-muted-foreground text-xs">
+          <span v-if="produto.vendaSomenteMultiplo" class="text-muted-foreground text-xs">
+            {{ produto.unidadeVenda }} ({{ item.quantidade }} un)
+          </span>
+          <span v-else class="text-muted-foreground text-xs">
             un<template v-if="descreverEmbalagem(produto, item.quantidade)">
               ({{ descreverEmbalagem(produto, item.quantidade) }})</template
             >

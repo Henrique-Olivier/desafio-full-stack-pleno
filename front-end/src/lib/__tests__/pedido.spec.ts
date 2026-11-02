@@ -9,6 +9,8 @@ import {
   mensagemDoProblema,
   passoQuantidade,
   problemasDoPedido,
+  quantidadeNoCampo,
+  unidadesDoCampo,
   subtotalCentavos,
 } from '@/lib/pedido'
 import type { ProdutoDaTabela } from '@/types/produto'
@@ -51,6 +53,23 @@ describe('quantidade', () => {
 
   it('aceita qualquer quantidade inteira quando o produto não exige múltiplo', () => {
     expect(ajustarQuantidade(umProduto(), 7)).toBe(7)
+  })
+})
+
+describe('campo de quantidade', () => {
+  it('produto vendido só em múltiplo mostra a quantidade em embalagens', () => {
+    expect(quantidadeNoCampo(fardoDe10, 30)).toBe(3)
+  })
+
+  it('embalagens digitadas viram unidades', () => {
+    expect(unidadesDoCampo(fardoDe10, 3)).toBe(30)
+  })
+
+  it('produto sem obrigação de múltiplo continua em unidades', () => {
+    const caixaAvulsa = umProduto({ unidadeVenda: 'CX', fatorEmbalagem: 12 })
+
+    expect(quantidadeNoCampo(caixaAvulsa, 5)).toBe(5)
+    expect(unidadesDoCampo(caixaAvulsa, 5)).toBe(5)
   })
 })
 

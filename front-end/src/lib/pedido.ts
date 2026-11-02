@@ -19,6 +19,12 @@ export const ajustarQuantidade = (produto: RegraDeQuantidade, quantidade: number
   return Math.max(passo, Math.round(quantidade / passo) * passo)
 }
 
+export const quantidadeNoCampo = (produto: RegraDeQuantidade, unidades: number) =>
+  unidades / passoQuantidade(produto)
+
+export const unidadesDoCampo = (produto: RegraDeQuantidade, valorDigitado: number) =>
+  valorDigitado * passoQuantidade(produto)
+
 export const ajustarDesconto = (desconto: number) =>
   Number.isFinite(desconto) ? Math.min(100, Math.max(0, desconto)) : 0
 
