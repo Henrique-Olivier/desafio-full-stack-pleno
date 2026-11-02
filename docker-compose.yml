@@ -18,5 +18,25 @@ services:
       timeout: 3s
       retries: 15
 
+  back:
+    build: ./back-end
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/pedidos
+    ports:
+      - "3333:3333"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  front:
+    build:
+      context: ./front-end
+      args:
+        VITE_API_URL: http://localhost:3333
+    ports:
+      - "5173:80"
+    depends_on:
+      - back
+
 volumes:
   db-data:
