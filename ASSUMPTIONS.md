@@ -18,6 +18,12 @@ O PDF diz que o vendedor pode aplicar desconto, mas não diz se é no pedido int
 
 O PDF pede para "respeitar o limite de crédito disponível", mas não diz se o pedido acima do crédito é bloqueado ou vai para aprovação. Interpretei que bloqueia: um pedido com total acima do crédito disponível não pode ser enviado. No PDF, a aprovação do supervisor está ligada só ao desconto acima da alçada; liberar crédito é outra decisão, que não é do supervisor de vendas.
 
+## Cliente sem tabela de preço
+
+O PDF diz que cada cliente está vinculado a uma tabela, mas no seed o C004 vem sem tabela. Interpretei isso como erro de cadastro: o cliente aparece na carteira, mas não pode receber pedido até ter uma tabela vinculada. A tela mostra o aviso e o botão de novo pedido fica desabilitado, e o back recusa o envio com `ClienteSemTabela`.
+
+Considerei usar a "Tabela Padrão" (TP01) como alternativa, mas não fiz: preço é decisão comercial, o fallback esconderia o erro de cadastro e o seed não diz qual tabela é a padrão (eu teria que supor pelo nome).
+
 ## Login simulado
 
 O PDF diz que o login pode ser simulado escolhendo o vendedor. Interpretei que não há autenticação: o vendedor é escolhido numa lista e o id dele vai no header `X-Vendedor-Id` de cada requisição.
