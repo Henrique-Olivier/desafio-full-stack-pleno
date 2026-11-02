@@ -1,27 +1,39 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { ArrowLeft, CircleCheck, Clock, Search } from '@lucide/vue'
+import { onBeforeRouteLeave, useRoute, useRouter, type RouteLocationNormalized } from 'vue-router'
+import { ArrowLeft, CircleCheck, Clock, Info, Search } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import CarrinhoPedido, { type LinhaPedido } from '@/components/CarrinhoPedido.vue'
 import { api } from '@/service/api'
 import {
   buscarProdutos,
   excedeAlcada,
+  itensParaRepetir,
   mensagemDoProblema,
   problemasDoPedido,
   subtotalCentavos,
   type ProblemaDoServidor,
 } from '@/lib/pedido'
-import { formatarDinheiro } from '@/lib/utils'
-import { usePedidoEmMontagemStore } from '@/stores/pedidoEmMontagem'
+import { formatarData, formatarDinheiro } from '@/lib/utils'
+import { usePedidoEmMontagemStore, type Rascunho } from '@/stores/pedidoEmMontagem'
 import { useVendedorSelecionadoStore } from '@/stores/vendedorSelecionado'
 import type { DetalheCliente, ResumoPedido } from '@/types/cliente'
 import type { ProdutoDaTabela } from '@/types/produto'
 
 const route = useRoute()
+const router = useRouter()
 const clienteId = route.params.clienteId as string
 const pedidoStore = usePedidoEmMontagemStore()
 const vendedorStore = useVendedorSelecionadoStore()
@@ -33,6 +45,11 @@ const erro = ref('')
 const termo = ref('')
 const enviando = ref(false)
 const problemasDoServidor = ref<string[]>([])
+const avisosDaRepeticao = ref<string[]>([])
+const repeticaoPendente = ref(false)
+const confirmandoSaida = ref(false)
+let destinoAoSair: RouteLocationNormalized | undefined
+let rascunhoAntesDaRepeticao: Rascunho | undefined
 const pedidoEnviado = ref<{ status: ResumoPedido['status']; total: number } | null>(null)
 
 onMounted(async () => {
@@ -43,6 +60,9 @@ onMounted(async () => {
     ])
     cliente.value = detalhe.data.cliente
     produtos.value = tabela.data
+    const pedidoRepetido = detalhe.data.pedidos.find((p) => p.id === route.query.repetir)
+    if (pedidoRepetido && cliente.value.tabelaPrecoId) repetir(pedidoRepetido)
+    if (route.query.repetir) router.replace({ query: {} })
   } catch (e: unknown) {
     const status = (e as { response?: { status?: number } }).response?.status
     erro.value =
@@ -51,6 +71,35 @@ onMounted(async () => {
     carregando.value = false
   }
 })
+
+function repetir(pedido: ResumoPedido) {
+  const { itens, deFora } = itensParaRepetir(pedido.itens, produtos.value)
+  const substituiu = pedidoStore.itensDoCliente(clienteId).length > 0
+  rascunhoAntesDaRepeticao = pedidoStore.copiaDoRascunho(clienteId)
+  pedidoStore.substituir(clienteId, itens)
+  repeticaoPendente.value = true
+  avisosDaRepeticao.value = [
+    `Pedido de ${formatarData(pedido.criadoEm)} repetido com os preços atuais e sem desconto.`,
+    ...(substituiu ? ['O pedido que estava em montagem foi substituído.'] : []),
+    ...(deFora.length > 0
+      ? [`${deFora.length === 1 ? '1 item ficou' : `${deFora.length} itens ficaram`} de fora: ${deFora.join(', ')}.`]
+      : []),
+  ]
+}
+
+onBeforeRouteLeave((destino) => {
+  if (!repeticaoPendente.value) return
+  destinoAoSair = destino
+  confirmandoSaida.value = true
+  return false
+})
+
+function sairDoPedidoRepetido(manterRascunho: boolean) {
+  if (!manterRascunho) pedidoStore.restaurar(clienteId, rascunhoAntesDaRepeticao)
+  repeticaoPendente.value = false
+  confirmandoSaida.value = false
+  if (destinoAoSair) router.push(destinoAoSair)
+}
 
 const produtosFiltrados = computed(() => buscarProdutos(produtos.value, termo.value))
 
@@ -84,6 +133,7 @@ async function enviarPedido() {
       clienteId,
       itens: pedidoStore.itensDoCliente(clienteId),
     })
+    repeticaoPendente.value = false
     pedidoStore.limpar(clienteId)
     pedidoEnviado.value = data
   } catch (e: unknown) {
@@ -149,6 +199,16 @@ const avisos = computed(() => {
           <span class="rounded-md border px-2 py-0.5 text-xs">Tabela {{ cliente.tabelaPrecoId }}</span>
         </p>
       </header>
+
+      <div
+        v-if="avisosDaRepeticao.length > 0"
+        class="flex items-start gap-2 rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-900"
+      >
+        <Info class="mt-0.5 size-4 shrink-0" />
+        <div class="flex flex-col gap-1">
+          <p v-for="aviso in avisosDaRepeticao" :key="aviso">{{ aviso }}</p>
+        </div>
+      </div>
 
       <div class="grid gap-6 xl:grid-cols-[1fr_380px] xl:items-start">
         <section class="flex min-w-0 flex-col gap-3">
@@ -221,5 +281,22 @@ const avisos = computed(() => {
         </SheetContent>
       </Sheet>
     </template>
+
+    <AlertDialog v-model:open="confirmandoSaida">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Sair do pedido repetido?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Você pode salvar este pedido como rascunho para continuar depois ou descartá-lo. Se descartar, volta o
+            pedido que estava em montagem antes.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Continuar no pedido</AlertDialogCancel>
+          <Button variant="outline" @click="sairDoPedidoRepetido(false)">Descartar</Button>
+          <AlertDialogAction @click="sairDoPedidoRepetido(true)">Salvar rascunho</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>

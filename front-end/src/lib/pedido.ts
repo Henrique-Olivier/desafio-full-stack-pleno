@@ -46,6 +46,26 @@ export const problemasDoPedido = (pedido: {
   return problemas
 }
 
+export const itensParaRepetir = (
+  itensAntigos: { produtoId: string; descricao: string; quantidade: number }[],
+  produtos: ProdutoDaTabela[],
+) => {
+  const itens: ItemEmMontagem[] = []
+  const deFora: string[] = []
+  for (const antigo of itensAntigos) {
+    const produto = produtos.find((p) => p.id === antigo.produtoId)
+    if (!produto) deFora.push(`${antigo.descricao} (fora da tabela)`)
+    else if (!produto.ativo) deFora.push(`${antigo.descricao} (indisponível)`)
+    else
+      itens.push({
+        produtoId: produto.id,
+        quantidade: ajustarQuantidade(produto, antigo.quantidade),
+        descontoPercentual: 0,
+      })
+  }
+  return { itens, deFora }
+}
+
 export type ProblemaDoServidor = { codigo: string; produtoId?: string }
 
 const mensagensDoPedido: Record<string, string> = {

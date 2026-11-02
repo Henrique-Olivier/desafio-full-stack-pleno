@@ -156,6 +156,18 @@ onMounted(async () => {
                     </div>
                   </li>
                 </ul>
+                <div class="flex justify-end border-t p-3">
+                  <Button v-if="!detalhe.cliente.tabelaPrecoId" variant="outline" size="sm" disabled>
+                    Repetir pedido
+                  </Button>
+                  <Button v-else as-child variant="outline" size="sm">
+                    <RouterLink
+                      :to="{ name: 'novo-pedido', params: { clienteId: detalhe.cliente.id }, query: { repetir: pedido.id } }"
+                    >
+                      Repetir pedido
+                    </RouterLink>
+                  </Button>
+                </div>
               </CollapsibleContent>
             </Collapsible>
           </li>

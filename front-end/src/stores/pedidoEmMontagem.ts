@@ -5,7 +5,7 @@ import type { ProdutoDaTabela } from '@/types/produto'
 
 const localStorageKey = 'pedidosEmMontagem'
 
-type Rascunho = { id: string; itens: ItemEmMontagem[] }
+export type Rascunho = { id: string; itens: ItemEmMontagem[] }
 
 const lerSalvos = (): Record<string, Rascunho> => {
   try {
@@ -30,6 +30,11 @@ export const usePedidoEmMontagemStore = defineStore('pedidoEmMontagem', () => {
   const itensDoCliente = (clienteId: string) => rascunhos.value[clienteId]?.itens ?? []
 
   const idDoPedido = (clienteId: string) => rascunhos.value[clienteId]?.id
+
+  const copiaDoRascunho = (clienteId: string): Rascunho | undefined => {
+    const rascunho = rascunhos.value[clienteId]
+    return rascunho && { id: rascunho.id, itens: rascunho.itens.map((item) => ({ ...item })) }
+  }
 
   const itemDoProduto = (clienteId: string, produtoId: string) =>
     itensDoCliente(clienteId).find((i) => i.produtoId === produtoId)
@@ -60,9 +65,30 @@ export const usePedidoEmMontagemStore = defineStore('pedidoEmMontagem', () => {
     if (rascunho) rascunho.itens = rascunho.itens.filter((i) => i.produtoId !== produtoId)
   }
 
+  const substituir = (clienteId: string, itens: ItemEmMontagem[]) => {
+    rascunhos.value[clienteId] = { id: idDoPedido(clienteId) ?? crypto.randomUUID(), itens }
+  }
+
+  const restaurar = (clienteId: string, rascunho: Rascunho | undefined) => {
+    if (rascunho) rascunhos.value[clienteId] = rascunho
+    else delete rascunhos.value[clienteId]
+  }
+
   const limpar = (clienteId: string) => {
     delete rascunhos.value[clienteId]
   }
 
-  return { itensDoCliente, idDoPedido, itemDoProduto, adicionar, alterarQuantidade, alterarDesconto, remover, limpar }
+  return {
+    itensDoCliente,
+    idDoPedido,
+    copiaDoRascunho,
+    itemDoProduto,
+    adicionar,
+    alterarQuantidade,
+    alterarDesconto,
+    remover,
+    substituir,
+    restaurar,
+    limpar,
+  }
 })

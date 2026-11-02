@@ -5,6 +5,7 @@ import {
   buscarProdutos,
   descreverEmbalagem,
   excedeAlcada,
+  itensParaRepetir,
   mensagemDoProblema,
   passoQuantidade,
   problemasDoPedido,
@@ -146,6 +147,39 @@ describe('problemas do pedido', () => {
     expect(problemasDoPedido({ ...pedidoValido, temProdutoIndisponivel: true })).toEqual([
       'Remova os produtos indisponíveis.',
     ])
+  })
+})
+
+describe('repetir pedido', () => {
+  const tabela = [
+    umProduto({ id: 'P1' }),
+    umProduto({ id: 'P2', unidadeVenda: 'FD', fatorEmbalagem: 12, vendaSomenteMultiplo: true }),
+    umProduto({ id: 'P3', ativo: false }),
+  ]
+
+  it('repete a quantidade e zera o desconto', () => {
+    const { itens } = itensParaRepetir([{ produtoId: 'P1', descricao: 'Arroz', quantidade: 7 }], tabela)
+
+    expect(itens).toEqual([{ produtoId: 'P1', quantidade: 7, descontoPercentual: 0 }])
+  })
+
+  it('ajusta a quantidade ao múltiplo atual da embalagem', () => {
+    const { itens } = itensParaRepetir([{ produtoId: 'P2', descricao: 'Água', quantidade: 10 }], tabela)
+
+    expect(itens).toEqual([{ produtoId: 'P2', quantidade: 12, descontoPercentual: 0 }])
+  })
+
+  it('deixa de fora produto inativo e produto fora da tabela', () => {
+    const { itens, deFora } = itensParaRepetir(
+      [
+        { produtoId: 'P3', descricao: 'Refrigerante Laranja', quantidade: 6 },
+        { produtoId: 'P9', descricao: 'Sabonete', quantidade: 1 },
+      ],
+      tabela,
+    )
+
+    expect(itens).toEqual([])
+    expect(deFora).toEqual(['Refrigerante Laranja (indisponível)', 'Sabonete (fora da tabela)'])
   })
 })
 

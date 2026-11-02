@@ -139,6 +139,57 @@ describe('pedido em montagem', () => {
     expect(store.idDoPedido('C001')).not.toBe(idEnviado)
   })
 
+  it('substituir troca os itens e mantém o id do pedido em montagem', () => {
+    const store = usePedidoEmMontagemStore()
+    store.adicionar('C001', umProduto())
+    const id = store.idDoPedido('C001')
+
+    store.substituir('C001', [{ produtoId: 'P2', quantidade: 10, descontoPercentual: 0 }])
+
+    expect(store.itensDoCliente('C001')).toEqual([{ produtoId: 'P2', quantidade: 10, descontoPercentual: 0 }])
+    expect(store.idDoPedido('C001')).toBe(id)
+  })
+
+  it('substituir sem pedido em montagem cria um pedido com id', () => {
+    const store = usePedidoEmMontagemStore()
+
+    store.substituir('C001', [{ produtoId: 'P1', quantidade: 1, descontoPercentual: 0 }])
+
+    expect(store.idDoPedido('C001')).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
+  it('restaurar volta o pedido em montagem de antes', () => {
+    const store = usePedidoEmMontagemStore()
+    store.adicionar('C001', umProduto())
+    const antes = store.copiaDoRascunho('C001')
+
+    store.substituir('C001', [{ produtoId: 'P2', quantidade: 10, descontoPercentual: 0 }])
+    store.restaurar('C001', antes)
+
+    expect(store.itensDoCliente('C001')).toEqual([{ produtoId: 'P1', quantidade: 1, descontoPercentual: 0 }])
+    expect(store.idDoPedido('C001')).toBe(antes?.id)
+  })
+
+  it('a cópia do rascunho não muda quando o pedido em montagem muda', () => {
+    const store = usePedidoEmMontagemStore()
+    store.adicionar('C001', umProduto())
+    const copia = store.copiaDoRascunho('C001')
+
+    store.alterarQuantidade('C001', umProduto(), 5)
+
+    expect(copia?.itens[0]?.quantidade).toBe(1)
+  })
+
+  it('restaurar sem pedido anterior deixa o cliente sem pedido em montagem', () => {
+    const store = usePedidoEmMontagemStore()
+    store.substituir('C001', [{ produtoId: 'P1', quantidade: 1, descontoPercentual: 0 }])
+
+    store.restaurar('C001', undefined)
+
+    expect(store.itensDoCliente('C001')).toEqual([])
+    expect(store.idDoPedido('C001')).toBeUndefined()
+  })
+
   it('cada cliente tem o seu pedido em montagem', () => {
     const store = usePedidoEmMontagemStore()
 
