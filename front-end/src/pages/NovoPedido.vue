@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import CarrinhoPedido, { type LinhaPedido } from '@/components/CarrinhoPedido.vue'
 import { api } from '@/service/api'
-import { PEDIDO_MINIMO, buscarProdutos, subtotalCentavos } from '@/lib/pedido'
+import { buscarProdutos, excedeAlcada, problemasDoPedido, subtotalCentavos } from '@/lib/pedido'
 import { formatarDinheiro } from '@/lib/utils'
 import { usePedidoEmMontagemStore } from '@/stores/pedidoEmMontagem'
 import { useVendedorSelecionadoStore } from '@/stores/vendedorSelecionado'
@@ -53,21 +53,22 @@ const linhas = computed<LinhaPedido[]>(() =>
 
 const total = computed(() => linhas.value.reduce((soma, l) => soma + Math.round(l.subtotal * 100), 0) / 100)
 
-const problemas = computed(() => {
-  const lista: string[] = []
-  if (linhas.value.some((l) => !l.produto.ativo)) lista.push('Remova os produtos indisponíveis.')
-  if (total.value < PEDIDO_MINIMO)
-    lista.push(
-      `Pedido mínimo de ${formatarDinheiro(PEDIDO_MINIMO)}. Faltam ${formatarDinheiro(PEDIDO_MINIMO - total.value)}.`,
-    )
-  if (cliente.value && total.value > cliente.value.creditoDisponivel)
-    lista.push(`Total acima do crédito disponível (${formatarDinheiro(cliente.value.creditoDisponivel)}).`)
-  return lista
-})
+const problemas = computed(() =>
+  cliente.value
+    ? problemasDoPedido({
+        total: total.value,
+        creditoDisponivel: cliente.value.creditoDisponivel,
+        temProdutoIndisponivel: linhas.value.some((l) => !l.produto.ativo),
+      })
+    : [],
+)
 
 const avisos = computed(() => {
   const alcada = vendedorStore.vendedor.alcadaDescontoPercentual
-  return linhas.value.some((l) => l.item.descontoPercentual > alcada)
+  return excedeAlcada(
+    linhas.value.map((l) => l.item.descontoPercentual),
+    alcada,
+  )
     ? [`Desconto acima da sua alçada (${alcada}%). O pedido vai para aprovação do supervisor.`]
     : []
 })

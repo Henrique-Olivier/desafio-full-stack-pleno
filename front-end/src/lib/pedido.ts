@@ -1,3 +1,4 @@
+import { formatarDinheiro } from '@/lib/utils'
 import type { ProdutoDaTabela } from '@/types/produto'
 
 export type ItemEmMontagem = {
@@ -28,6 +29,24 @@ export const descreverEmbalagem = (produto: ProdutoDaTabela, quantidade: number)
   produto.fatorEmbalagem > 1 && quantidade % produto.fatorEmbalagem === 0
     ? `${quantidade / produto.fatorEmbalagem} ${produto.unidadeVenda}`
     : ''
+
+export const problemasDoPedido = (pedido: {
+  total: number
+  creditoDisponivel: number
+  temProdutoIndisponivel: boolean
+}) => {
+  const problemas: string[] = []
+  if (pedido.temProdutoIndisponivel) problemas.push('Remova os produtos indisponíveis.')
+  if (pedido.total < PEDIDO_MINIMO)
+    problemas.push(
+      `Pedido mínimo de ${formatarDinheiro(PEDIDO_MINIMO)}. Faltam ${formatarDinheiro(PEDIDO_MINIMO - pedido.total)}.`,
+    )
+  if (pedido.total > pedido.creditoDisponivel)
+    problemas.push(`Total acima do crédito disponível (${formatarDinheiro(pedido.creditoDisponivel)}).`)
+  return problemas
+}
+
+export const excedeAlcada = (descontos: number[], alcada: number) => descontos.some((desconto) => desconto > alcada)
 
 const normalizar = (texto: string) =>
   texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
