@@ -87,6 +87,58 @@ describe('pedido em montagem', () => {
     expect(store.itensDoCliente('C001')).toEqual([])
   })
 
+  it('limpa o pedido do cliente depois de enviado', () => {
+    const store = usePedidoEmMontagemStore()
+    store.adicionar('C001', umProduto())
+    store.adicionar('C002', umProduto())
+
+    store.limpar('C001')
+
+    expect(store.itensDoCliente('C001')).toEqual([])
+    expect(store.itensDoCliente('C002')).toHaveLength(1)
+  })
+
+  it('o pedido ganha um id quando o primeiro item é adicionado', () => {
+    const store = usePedidoEmMontagemStore()
+
+    store.adicionar('C001', umProduto())
+
+    expect(store.idDoPedido('C001')).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
+  it('o id do pedido não muda enquanto o pedido é montado', () => {
+    const store = usePedidoEmMontagemStore()
+    store.adicionar('C001', umProduto())
+    const id = store.idDoPedido('C001')
+
+    store.adicionar('C001', fardoDe10)
+    store.alterarDesconto('C001', 'P1', 3)
+    store.remover('C001', 'P2')
+
+    expect(store.idDoPedido('C001')).toBe(id)
+  })
+
+  it('o id do pedido continua o mesmo depois de recarregar a página', async () => {
+    usePedidoEmMontagemStore().adicionar('C001', umProduto())
+    const id = usePedidoEmMontagemStore().idDoPedido('C001')
+    await nextTick()
+
+    setActivePinia(createPinia())
+
+    expect(usePedidoEmMontagemStore().idDoPedido('C001')).toBe(id)
+  })
+
+  it('pedido novo depois do envio ganha outro id', () => {
+    const store = usePedidoEmMontagemStore()
+    store.adicionar('C001', umProduto())
+    const idEnviado = store.idDoPedido('C001')
+    store.limpar('C001')
+
+    store.adicionar('C001', umProduto())
+
+    expect(store.idDoPedido('C001')).not.toBe(idEnviado)
+  })
+
   it('cada cliente tem o seu pedido em montagem', () => {
     const store = usePedidoEmMontagemStore()
 
@@ -102,6 +154,19 @@ describe('pedido em montagem', () => {
     setActivePinia(createPinia())
 
     expect(usePedidoEmMontagemStore().itensDoCliente('C001')).toHaveLength(1)
+  })
+
+  it('rascunho salvo no formato antigo continua com os itens e ganha um id', () => {
+    localStorage.setItem(
+      'pedidosEmMontagem',
+      JSON.stringify({ C001: [{ produtoId: 'P1', quantidade: 2, descontoPercentual: 0 }] }),
+    )
+    setActivePinia(createPinia())
+
+    const store = usePedidoEmMontagemStore()
+
+    expect(store.itensDoCliente('C001')).toEqual([{ produtoId: 'P1', quantidade: 2, descontoPercentual: 0 }])
+    expect(store.idDoPedido('C001')).toMatch(/^[0-9a-f-]{36}$/)
   })
 
   it('valor inválido salvo no navegador não quebra a tela', () => {

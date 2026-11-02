@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { ArrowLeft, Search } from '@lucide/vue'
+import { ArrowLeft, CircleCheck, Clock, Search } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import CarrinhoPedido, { type LinhaPedido } from '@/components/CarrinhoPedido.vue'
 import { api } from '@/service/api'
-import { buscarProdutos, excedeAlcada, problemasDoPedido, subtotalCentavos } from '@/lib/pedido'
+import {
+  buscarProdutos,
+  excedeAlcada,
+  mensagemDoProblema,
+  problemasDoPedido,
+  subtotalCentavos,
+  type ProblemaDoServidor,
+} from '@/lib/pedido'
 import { formatarDinheiro } from '@/lib/utils'
 import { usePedidoEmMontagemStore } from '@/stores/pedidoEmMontagem'
 import { useVendedorSelecionadoStore } from '@/stores/vendedorSelecionado'
-import type { DetalheCliente } from '@/types/cliente'
+import type { DetalheCliente, ResumoPedido } from '@/types/cliente'
 import type { ProdutoDaTabela } from '@/types/produto'
 
 const route = useRoute()
@@ -24,6 +31,9 @@ const produtos = ref<ProdutoDaTabela[]>([])
 const carregando = ref(true)
 const erro = ref('')
 const termo = ref('')
+const enviando = ref(false)
+const problemasDoServidor = ref<string[]>([])
+const pedidoEnviado = ref<{ status: ResumoPedido['status']; total: number } | null>(null)
 
 onMounted(async () => {
   try {
@@ -53,15 +63,40 @@ const linhas = computed<LinhaPedido[]>(() =>
 
 const total = computed(() => linhas.value.reduce((soma, l) => soma + Math.round(l.subtotal * 100), 0) / 100)
 
-const problemas = computed(() =>
-  cliente.value
+const problemas = computed(() => [
+  ...(cliente.value
     ? problemasDoPedido({
         total: total.value,
         creditoDisponivel: cliente.value.creditoDisponivel,
         temProdutoIndisponivel: linhas.value.some((l) => !l.produto.ativo),
       })
-    : [],
-)
+    : []),
+  ...problemasDoServidor.value,
+])
+
+watch(linhas, () => (problemasDoServidor.value = []), { deep: true })
+
+async function enviarPedido() {
+  enviando.value = true
+  try {
+    const { data } = await api.post<{ status: ResumoPedido['status']; total: number }>('/pedidos', {
+      id: pedidoStore.idDoPedido(clienteId),
+      clienteId,
+      itens: pedidoStore.itensDoCliente(clienteId),
+    })
+    pedidoStore.limpar(clienteId)
+    pedidoEnviado.value = data
+  } catch (e: unknown) {
+    const resposta = (e as { response?: { status?: number; data?: { problemas?: ProblemaDoServidor[] } } }).response
+    const descricaoDoProduto = (id: string) => produtos.value.find((p) => p.id === id)?.descricao
+    problemasDoServidor.value =
+      resposta?.status === 422 && resposta.data?.problemas
+        ? resposta.data.problemas.map((p) => mensagemDoProblema(p, descricaoDoProduto))
+        : ['Não foi possível enviar o pedido. Verifique a conexão e tente de novo.']
+  } finally {
+    enviando.value = false
+  }
+}
 
 const avisos = computed(() => {
   const alcada = vendedorStore.vendedor.alcadaDescontoPercentual
@@ -89,6 +124,22 @@ const avisos = computed(() => {
     <p v-else-if="cliente && !cliente.tabelaPrecoId" class="text-destructive">
       Cliente sem tabela de preço. Não é possível montar pedido.
     </p>
+
+    <section v-else-if="pedidoEnviado" class="flex flex-col items-start gap-3 rounded-lg border p-6">
+      <template v-if="pedidoEnviado.status === 'AguardandoAprovacao'">
+        <Clock class="size-8 text-amber-600" />
+        <h1 class="text-xl font-semibold">Pedido aguardando aprovação</h1>
+        <p class="text-muted-foreground text-sm">O desconto passou da sua alçada. O supervisor precisa aprovar.</p>
+      </template>
+      <template v-else>
+        <CircleCheck class="size-8 text-emerald-600" />
+        <h1 class="text-xl font-semibold">Pedido enviado</h1>
+      </template>
+      <p class="font-medium">Total {{ formatarDinheiro(pedidoEnviado.total) }}</p>
+      <Button as-child>
+        <RouterLink :to="{ name: 'detalhe-cliente', params: { clienteId } }">Voltar ao cliente</RouterLink>
+      </Button>
+    </section>
 
     <template v-else-if="cliente">
       <header class="flex flex-col gap-1">
@@ -144,7 +195,7 @@ const avisos = computed(() => {
 
         <aside class="hidden rounded-lg border p-4 xl:sticky xl:top-4 xl:block">
           <h2 class="mb-2 text-lg font-semibold">Pedido</h2>
-          <CarrinhoPedido :cliente-id="clienteId" :linhas="linhas" :total="total" :problemas="problemas" :avisos="avisos" />
+          <CarrinhoPedido :cliente-id="clienteId" :linhas="linhas" :total="total" :problemas="problemas" :avisos="avisos" :enviando="enviando" @enviar="enviarPedido" />
         </aside>
       </div>
 
@@ -165,7 +216,7 @@ const avisos = computed(() => {
             <SheetTitle>Pedido</SheetTitle>
           </SheetHeader>
           <div class="px-4 pb-4">
-            <CarrinhoPedido :cliente-id="clienteId" :linhas="linhas" :total="total" :problemas="problemas" :avisos="avisos" />
+            <CarrinhoPedido :cliente-id="clienteId" :linhas="linhas" :total="total" :problemas="problemas" :avisos="avisos" :enviando="enviando" @enviar="enviarPedido" />
           </div>
         </SheetContent>
       </Sheet>

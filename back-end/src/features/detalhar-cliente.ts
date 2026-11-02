@@ -25,7 +25,7 @@ const paraCentavos = (reais: number) => Math.round(reais * 100)
 export const detalharClienteRouter = Router()
 
 detalharClienteRouter.get('/carteira/:clienteId', async (req, res) => {
-  const { rows: clientes } = await db.query<Cliente>(
+  const { rows: clientes } = await db.query<Cliente & { creditoEmAberto: number }>(
     `SELECT id,
             nome_fantasia AS "nomeFantasia",
             razao_social AS "razaoSocial",
@@ -34,7 +34,12 @@ detalharClienteRouter.get('/carteira/:clienteId', async (req, res) => {
             limite_credito::float AS "limiteCredito",
             credito_utilizado::float AS "creditoUtilizado",
             cidade,
-            uf
+            uf,
+            (SELECT COALESCE(SUM(ROUND(i.quantidade * i.preco_unidade * (1 - i.desconto_percentual / 100), 2)), 0)
+               FROM pedidos p
+               JOIN pedido_itens i ON i.pedido_id = p.id
+              WHERE p.cliente_id = clientes.id
+                AND p.status IN ('Enviado', 'AguardandoAprovacao'))::float AS "creditoEmAberto"
        FROM clientes
       WHERE id = $1 AND vendedor_id = $2`,
     [req.params.clienteId, req.vendedor.id],
@@ -47,7 +52,7 @@ detalharClienteRouter.get('/carteira/:clienteId', async (req, res) => {
             p.criado_em AS "criadoEm",
             p.status,
             COUNT(i.produto_id)::int AS "quantidadeItens",
-            COALESCE(ROUND(SUM(i.quantidade * i.preco_unidade * (1 - i.desconto_percentual / 100)), 2), 0)::float AS total,
+            COALESCE(SUM(ROUND(i.quantidade * i.preco_unidade * (1 - i.desconto_percentual / 100), 2)), 0)::float AS total,
             COALESCE(
               json_agg(
                 json_build_object(
@@ -72,7 +77,11 @@ detalharClienteRouter.get('/carteira/:clienteId', async (req, res) => {
   )
 
   const creditoDisponivel =
-    creditoDisponivelCentavos(paraCentavos(cliente.limiteCredito), paraCentavos(cliente.creditoUtilizado)) / 100
+    creditoDisponivelCentavos(
+      paraCentavos(cliente.limiteCredito),
+      paraCentavos(cliente.creditoUtilizado),
+      paraCentavos(cliente.creditoEmAberto),
+    ) / 100
 
   res.json({ cliente: { ...cliente, creditoDisponivel }, pedidos })
 })

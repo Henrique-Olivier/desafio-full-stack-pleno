@@ -12,9 +12,15 @@ export type ItemPedido = {
 }
 
 export type Problema =
-  | { codigo: 'PedidoVazio' | 'AbaixoDoMinimo' | 'CreditoInsuficiente' }
+  | { codigo: 'PedidoVazio' | 'AbaixoDoMinimo' | 'CreditoInsuficiente' | 'ClienteSemTabela' }
   | {
-      codigo: 'QuantidadeInvalida' | 'ForaDoMultiplo' | 'ProdutoInativo' | 'DescontoInvalido' | 'ProdutoDuplicado'
+      codigo:
+        | 'QuantidadeInvalida'
+        | 'ForaDoMultiplo'
+        | 'ProdutoInativo'
+        | 'DescontoInvalido'
+        | 'ProdutoDuplicado'
+        | 'ProdutoForaDaTabela'
       produtoId: string
     }
 

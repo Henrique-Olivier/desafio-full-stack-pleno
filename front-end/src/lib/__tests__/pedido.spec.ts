@@ -5,6 +5,7 @@ import {
   buscarProdutos,
   descreverEmbalagem,
   excedeAlcada,
+  mensagemDoProblema,
   passoQuantidade,
   problemasDoPedido,
   subtotalCentavos,
@@ -145,6 +146,32 @@ describe('problemas do pedido', () => {
     expect(problemasDoPedido({ ...pedidoValido, temProdutoIndisponivel: true })).toEqual([
       'Remova os produtos indisponíveis.',
     ])
+  })
+})
+
+describe('mensagens dos problemas do servidor', () => {
+  const descricaoDoProduto = (id: string) => (id === 'P1' ? 'Açúcar Cristal 1kg' : undefined)
+
+  it('problema de item mostra a descrição do produto', () => {
+    expect(mensagemDoProblema({ codigo: 'ForaDoMultiplo', produtoId: 'P1' }, descricaoDoProduto)).toBe(
+      'Açúcar Cristal 1kg: quantidade fora do múltiplo da embalagem.',
+    )
+  })
+
+  it('produto desconhecido mostra o código do produto', () => {
+    expect(mensagemDoProblema({ codigo: 'ProdutoForaDaTabela', produtoId: 'P9' }, descricaoDoProduto)).toBe(
+      'P9: produto fora da tabela do cliente.',
+    )
+  })
+
+  it('problema do pedido mostra a mensagem do pedido', () => {
+    expect(mensagemDoProblema({ codigo: 'CreditoInsuficiente' }, descricaoDoProduto)).toBe(
+      'Total acima do crédito disponível do cliente.',
+    )
+  })
+
+  it('código desconhecido mostra mensagem genérica', () => {
+    expect(mensagemDoProblema({ codigo: 'Novo' }, descricaoDoProduto)).toBe('Pedido recusado.')
   })
 })
 

@@ -46,6 +46,30 @@ export const problemasDoPedido = (pedido: {
   return problemas
 }
 
+export type ProblemaDoServidor = { codigo: string; produtoId?: string }
+
+const mensagensDoPedido: Record<string, string> = {
+  PedidoVazio: 'O pedido não tem itens.',
+  AbaixoDoMinimo: `Pedido abaixo do mínimo de ${formatarDinheiro(PEDIDO_MINIMO)}.`,
+  CreditoInsuficiente: 'Total acima do crédito disponível do cliente.',
+  ClienteSemTabela: 'Cliente sem tabela de preço.',
+}
+
+const mensagensDoItem: Record<string, string> = {
+  QuantidadeInvalida: 'quantidade inválida',
+  ForaDoMultiplo: 'quantidade fora do múltiplo da embalagem',
+  ProdutoInativo: 'produto indisponível',
+  DescontoInvalido: 'desconto inválido',
+  ProdutoDuplicado: 'produto repetido no pedido',
+  ProdutoForaDaTabela: 'produto fora da tabela do cliente',
+}
+
+export const mensagemDoProblema = (problema: ProblemaDoServidor, descricaoDoProduto: (id: string) => string | undefined) => {
+  if (problema.produtoId && mensagensDoItem[problema.codigo])
+    return `${descricaoDoProduto(problema.produtoId) ?? problema.produtoId}: ${mensagensDoItem[problema.codigo]}.`
+  return mensagensDoPedido[problema.codigo] ?? 'Pedido recusado.'
+}
+
 export const excedeAlcada = (descontos: number[], alcada: number) => descontos.some((desconto) => desconto > alcada)
 
 const normalizar = (texto: string) =>

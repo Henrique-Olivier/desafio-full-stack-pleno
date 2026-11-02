@@ -29,6 +29,6 @@ export type ResumoPedido = {
 }
 
 export type DetalheCliente = {
-  cliente: Cliente & { creditoDisponivel: number }
+  cliente: Cliente & { creditoDisponivel: number; creditoEmAberto: number }
   pedidos: ResumoPedido[]
 }

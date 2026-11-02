@@ -145,6 +145,8 @@ O vendedor trabalha com internet ruim. Pode acontecer de o pedido ser gravado no
 **Escolha**
 O front gera o id do pedido. O back valida o formato com `z.uuid()` e grava com `INSERT ... ON CONFLICT (id) DO NOTHING`.
 
+O id nasce quando o primeiro item entra no pedido e fica salvo junto com o rascunho no navegador. Assim, mesmo que a página seja recarregada antes de reenviar, o pedido continua com o mesmo id.
+
 Se o pedido foi criado, o back responde `201`. Se o id já existia, responde `200` com o pedido que está gravado, e o front mostra que ele já tinha sido enviado. Não usei `409`, porque na prática o id repetido é um reenvio por conexão ruim, e o vendedor veria um erro de um pedido que deu certo.
 
 **Por quê**
@@ -196,3 +198,47 @@ A conta do total existe no front e no back. O front é só uma prévia; quem val
 
 **O que faria diferente com mais tempo**
 Transformaria o `core/` num pacote compartilhado para o front usar a mesma conta do back.
+
+## Crédito do cliente: o módulo de pedidos só lê, não escreve
+
+**Contexto**
+O cliente tem `limite_credito` e `credito_utilizado`. Ao enviar um pedido, precisei decidir se o módulo de pedidos atualiza o crédito utilizado do cliente. Pensando friamente, este é um módulo de montagem de pedidos: o crédito utilizado vem de outra parte do sistema (financeiro/ERP), que atualiza o valor quando o pedido é faturado.
+
+**Alternativas**
+- Atualizar o `credito_utilizado` ao enviar: simples, mas o módulo passaria a escrever num dado que não é dele, e quando o ERP faturasse o pedido o valor seria contado duas vezes.
+- Só ler o `credito_utilizado`, sem considerar mais nada: o mais simples, mas o vendedor poderia mandar dois pedidos seguidos, cada um dentro do crédito, e a soma estourar o limite.
+- Só ler o `credito_utilizado` e descontar os pedidos em aberto deste módulo.
+
+**Escolha**
+O módulo não escreve no `credito_utilizado`. O crédito disponível passa a ser `limite − utilizado − pedidos em aberto do cliente`, sendo "em aberto" os pedidos `Enviado` e `AguardandoAprovacao`. Esse cálculo vale para a carteira, o detalhe do cliente e o envio do pedido.
+
+**Por quê**
+- Cada sistema cuida do próprio dado: o financeiro é dono do crédito utilizado, e o módulo de pedidos é dono dos pedidos que ele criou.
+- Descontar os pedidos em aberto impede que vários pedidos seguidos estourem o limite.
+- Os pedidos do seed estão `Faturado` ou `Cancelado`, então os valores atuais não mudam.
+
+**Pontos fracos**
+Quando o ERP faturar um pedido, ele passa a entrar no `credito_utilizado`, mas aqui continuaria como `Enviado` e seria descontado duas vezes. Isso depende da integração que atualiza o status do pedido para `Faturado`, que está fora do escopo do desafio.
+
+**O que faria diferente com mais tempo**
+Faria a integração com o ERP para atualizar o status dos pedidos faturados, ou receberia do financeiro o crédito já considerando os pedidos em aberto.
+
+## Arredondamento do total do pedido
+
+**Contexto**
+O total de cada item é quantidade × preço × (1 − desconto), e isso pode gerar frações de centavo (R$ 8,49 com 5% de desconto dá R$ 8,0655). Precisei decidir em que momento arredondar.
+
+**Alternativas**
+- Arredondar só o total do pedido, somando os itens sem arredondar.
+- Arredondar cada item em centavos e somar os itens já arredondados.
+
+**Escolha**
+Cada item é arredondado em centavos (meio centavo arredonda para cima) e o total do pedido é a soma dos itens arredondados. A mesma regra vale no `core/pedido.ts`, na prévia do front e no SQL que mostra o histórico.
+
+**Por quê**
+- Cada linha do pedido mostra um valor fechado em centavos, e a soma das linhas bate exatamente com o total. Arredondando só no fim, o cliente poderia somar as linhas e achar 1 centavo de diferença.
+- O preço fica congelado em cada item do pedido, então faz sentido o subtotal do item também ser um valor fechado.
+- Os totais do histórico do seed não mudaram com essa regra.
+
+**O que faria diferente com mais tempo**
+Validaria com o financeiro qual regra o ERP usa no faturamento, para os totais baterem também lá.

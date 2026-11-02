@@ -16,6 +16,7 @@ const props = defineProps<{
   total: number
   problemas: string[]
   avisos: string[]
+  enviando?: boolean
 }>()
 
 const emit = defineEmits<{ enviar: [] }>()
@@ -139,7 +140,9 @@ function digitarDesconto(item: ItemEmMontagem, evento: Event) {
       <template v-if="tentouEnviar">
         <p v-for="problema in problemas" :key="problema" class="text-destructive text-sm">{{ problema }}</p>
       </template>
-      <Button size="lg" :disabled="linhas.length === 0" @click="enviar">Enviar pedido</Button>
+      <Button size="lg" :disabled="linhas.length === 0 || enviando" @click="enviar">
+        {{ enviando ? 'Enviando...' : 'Enviar pedido' }}
+      </Button>
     </div>
   </div>
 </template>

@@ -106,6 +106,9 @@ onMounted(async () => {
           >
             {{ formatarDinheiro(detalhe.cliente.creditoDisponivel) }}
           </dd>
+          <dd v-if="detalhe.cliente.creditoEmAberto > 0" class="text-muted-foreground text-xs">
+            {{ formatarDinheiro(detalhe.cliente.creditoEmAberto) }} em pedidos em aberto
+          </dd>
         </div>
       </dl>
 
