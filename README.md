@@ -97,6 +97,9 @@ O `seed.json` foi importado como está, com as imperfeições de dados reais:
 
 ## O que ficou de fora
 
+- **Montar o pedido sem conexão e sincronizar depois (requisito 9, opcional):** não implementei porque não tenho domínio suficiente do assunto. Preferi não entregar essa parte mal feita: mesmo com a ajuda da IA, eu não conseguiria avaliar de forma crítica o que fosse feito, e eu respondo por tudo que está no repositório.
+
+  O que já existe ajuda nesse caminho: o id do pedido é gerado no front, então reenviar não duplica o pedido, e o rascunho fica salvo no aparelho. O que falta é guardar a carteira e as tabelas de preço no aparelho, ter uma fila de envio e, principalmente, decidir o que fazer quando o pedido montado offline é recusado na sincronização porque o preço mudou, o produto saiu ou o crédito acabou.
 
 ## Estrutura
 
