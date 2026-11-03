@@ -95,6 +95,9 @@ O `seed.json` foi importado como está, com as imperfeições de dados reais:
 - Produtos vendidos só em múltiplos (ex.: Açúcar, fardo com 10) só aceitam quantidades do fator.
 - O histórico do C001 tem um pedido com o P022, útil para ver o "repetir pedido" deixando o item inativo de fora.
 
+## O que ficou de fora
+
+
 ## Estrutura
 
 ```

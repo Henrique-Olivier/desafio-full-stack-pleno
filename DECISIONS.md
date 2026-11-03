@@ -143,7 +143,7 @@ O vendedor trabalha com internet ruim. Pode acontecer de o pedido ser gravado no
 - Front gera o id (`crypto.randomUUID()`) e manda junto com o pedido.
 
 **Escolha**
-O front gera o id do pedido. O back valida o formato com `z.uuid()` e grava com `INSERT ... ON CONFLICT (id) DO NOTHING`.
+O front gera o id do pedido. O back valida o formato com `z.uuid()` e, dentro da transação, procura o pedido pelo id antes de gravar. Se dois envios do mesmo id chegarem juntos, a chave primária recusa o segundo `INSERT` (erro `23505`) e o back responde com o pedido já gravado. Se o id já pertence a outro vendedor, responde `409`.
 
 O id nasce quando o primeiro item entra no pedido e fica salvo junto com o rascunho no navegador. Assim, mesmo que a página seja recarregada antes de reenviar, o pedido continua com o mesmo id.
 
