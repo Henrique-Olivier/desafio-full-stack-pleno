@@ -9,10 +9,10 @@ Stack: Vue 3 + Tailwind + shadcn-vue no front, Node.js + TypeScript (Express) no
 Pré-requisito: Docker com Docker Compose.
 
 ```bash
-docker compose up --build
+docker compose up
 ```
 
-Esse comando sobe os três serviços, já com o build de produção:
+Esse comando sobe os três serviços, já com o build de produção (na primeira vez as imagens são construídas automaticamente):
 
 | Serviço | Endereço | O que é |
 |---|---|---|
@@ -26,8 +26,10 @@ O banco só é criado na primeira subida. Para recriar do zero (por exemplo, par
 
 ```bash
 docker compose down -v
-docker compose up --build
+docker compose up
 ```
+
+Se alterar o código, use `docker compose up --build` para reconstruir as imagens; sem o `--build`, o compose reaproveita as imagens já construídas.
 
 > Se você estiver rodando o projeto em modo dev ao mesmo tempo, pare o `npm run dev` do back e do front antes: o compose usa as mesmas portas (3333 e 5173).
 
