@@ -9,8 +9,8 @@ import { enviarPedidoRouter } from './features/enviar-pedido.js'
 
 export const app = express()
 
-app.use(cors({ origin: 'http://localhost:5173' })) // front Vue
-app.use(express.json()) // ler body JSON
+app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(express.json())
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true })
@@ -24,7 +24,6 @@ app.use(detalharClienteRouter)
 app.use(listarProdutosRouter)
 app.use(enviarPedidoRouter)
 
-// erro geral — sempre por último, 4 parâmetro
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err)
   res.status(500).json({ erro: 'Deu ruim' })
