@@ -92,6 +92,10 @@ describe('subtotal', () => {
   it('aplica o desconto e devolve centavos', () => {
     expect(subtotalCentavos(8.49, { produtoId: 'P1', quantidade: 12, descontoPercentual: 5 })).toBe(9_679)
   })
+
+  it('converte o preço para centavos antes da conta, igual ao back', () => {
+    expect(subtotalCentavos(26.9, { produtoId: 'P1', quantidade: 3, descontoPercentual: 5 })).toBe(7_667)
+  })
 })
 
 describe('embalagem', () => {

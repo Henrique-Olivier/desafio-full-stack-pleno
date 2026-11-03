@@ -29,7 +29,9 @@ export const ajustarDesconto = (desconto: number) =>
   Number.isFinite(desconto) ? Math.min(100, Math.max(0, desconto)) : 0
 
 export const subtotalCentavos = (precoUnidade: number, item: ItemEmMontagem) =>
-  Math.round(item.quantidade * precoUnidade * (100 - item.descontoPercentual))
+  Math.round(
+    (item.quantidade * Math.round(precoUnidade * 100) * (10_000 - Math.round(item.descontoPercentual * 100))) / 10_000,
+  )
 
 export const descreverEmbalagem = (produto: ProdutoDaTabela, quantidade: number) =>
   produto.fatorEmbalagem > 1 && quantidade % produto.fatorEmbalagem === 0
